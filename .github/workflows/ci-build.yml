@@ -1,0 +1,30 @@
+name: caPutLog CI
+
+on:
+  push:
+    branches: [ "master", "add_metadata" ]
+  pull_request:
+    branches: [ "master", "add_metadata" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup EPICS base
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install wget make patch m4 build-essential tclx python3-dev git
+        curl https://epics-controls.org/download/base/base-7.0.7.tar.gz | tar xz
+        cd base-7.0.7
+        make
+    - name: Build caPutLog
+      run: |
+        echo "EPICS_BASE=base-7.0.7" >> configure/RELEASE.local
+        make
+    - name: Run tests
+      run:  |
+        cd test/O.linux-x86_64/
+        ./caPutJsonLogTest
